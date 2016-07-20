@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+# Copyright (c) 2016, Avocet Editorial Consultants
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#  list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#  this list of conditions and the following disclaimer in the documentation
+#  and/or other materials provided with the distribution.
+#
+# * Neither the name of weekdate nor the names of its
+#  contributors may be used to endorse or promote products derived from
+#  this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Module Imports
+import argparse
+import sys
+import datetime
+
+
+# Parse Date
+def parse_date(date):
+    
+    # Find Year
+    split_date = date.split('-')
+    if len(split_date) == 3:
+        year = int(split_date[0])
+        month = int(split_date[1])
+        day = int(split_date[2])
+    else:
+        raise ValueError("Invalid date argument")
+
+    date = datetime.date(year, month, day)
+    data = {
+        "date": date,
+        "year": year,
+        "week": int(date.strftime("%W"))
+    }
+
+    return data
+
+# Main Function
+def run(args):
+
+    # Set Variables
+    start = parse_date(args.start_date)
+    end = parse_date(args.end_date)
+    
+    weeks = range(start['week'], end['week'] + 1)
+    count = 0
+    for i in weeks:
+        # Find Date in Sequence
+        startdate = start['date']
+        delta = datetime.timedelta(weeks=count)
+        date = startdate + delta
+
+        # Find Day as Decimal
+        today = int(date.strftime('%w'))
+
+        # Find Monday
+        mon_delta = 1 - today
+        monday = date + datetime.timedelta(days=mon_delta)
+        mon_date = monday.strftime('%b %d')
+
+        # Find Sunday
+        sun_delta = 7 - today
+        sunday = date + datetime.timedelta(days=sun_delta)
+        sun_date = sunday.strftime('%b %d')
+
+        line = '[%s - %s]:' % (mon_date, sun_date)
+        print(line)
+        
+        # Iterate Count
+        count += 1
+        
+
+# Main Process
+if __name__ == '__main__':
+    now = datetime.datetime.now().strftime("%Y-%m-%d")
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', '--start-date', default=now)
+    parser.add_argument('-e', '--end-date', default=now)
+
+    parser.add_argument('--weekdates-only', action='store_true')
+    parser.add_argument('--sunday', action='store_true')
+    args = parser.parse_args() 
+    run(args)
+    sys.exit(0)
